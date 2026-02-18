@@ -1,0 +1,47 @@
+fn Dotenv_parse(content: string) -> HashMap {
+    var result = HashMap.new()
+    var lines = content.split("\n")
+    for line in lines {
+        var trimmed = line.trim()
+        if trimmed.len() == 0 { continue }
+        if trimmed[0] == "#" { continue }
+        var eq_pos = -1
+        for i in 0..trimmed.len() {
+            if trimmed[i] == "=" { eq_pos = i }
+        }
+        if eq_pos > 0 {
+            var key = trimmed.substring(0, eq_pos).trim()
+            var val = trimmed.substring(eq_pos + 1, trimmed.len()).trim()
+            if val.len() >= 2 {
+                if val[0] == "\"" && val[val.len() - 1] == "\"" {
+                    val = val.substring(1, val.len() - 1)
+                }
+            }
+            result.insert(key, val)
+        }
+    }
+    return result
+}
+
+fn main() -> int {
+    Test.init("dotenv")
+
+    // Parse .env content
+    var env = Dotenv_parse("DB_HOST=localhost\nDB_PORT=5432\n# comment\nAPI_KEY=\"secret123\"\n\nDEBUG=true")
+    Test.assert_eq_str(env.get("DB_HOST"), "localhost", "host")
+    Test.assert_eq_str(env.get("DB_PORT"), "5432", "port")
+    Test.assert_eq_str(env.get("API_KEY"), "secret123", "quoted value")
+    Test.assert_eq_str(env.get("DEBUG"), "true", "bool")
+
+    // Comments and blank lines skipped
+    Test.assert_eq_str(env.get("# comment"), "", "comment skipped")
+
+    // File-based load
+    File.write("/tmp/wyn_test.env", "NAME=Wyn\nVER=1.7")
+    var loaded = Dotenv_parse(File.read("/tmp/wyn_test.env"))
+    Test.assert_eq_str(loaded.get("NAME"), "Wyn", "file load")
+    Test.assert_eq_str(loaded.get("VER"), "1.7", "file ver")
+
+    Test.summary()
+    return 0
+}

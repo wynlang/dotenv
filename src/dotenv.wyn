@@ -1,0 +1,33 @@
+// dotenv — Load .env files
+// Usage: Dotenv.load(".env") or Dotenv.parse(content) -> HashMap
+
+fn Dotenv_parse(content: string) -> HashMap {
+    var result = HashMap.new()
+    var lines = content.split("\n")
+    for line in lines {
+        var trimmed = line.trim()
+        if trimmed.len() == 0 { continue }
+        if trimmed[0] == "#" { continue }
+        var eq_pos = -1
+        for i in 0..trimmed.len() {
+            if trimmed[i] == "=" { eq_pos = i }
+        }
+        if eq_pos > 0 {
+            var key = trimmed.substring(0, eq_pos).trim()
+            var val = trimmed.substring(eq_pos + 1, trimmed.len()).trim()
+            // Strip quotes
+            if val.len() >= 2 {
+                if val[0] == "\"" && val[val.len() - 1] == "\"" {
+                    val = val.substring(1, val.len() - 1)
+                }
+            }
+            result.insert(key, val)
+        }
+    }
+    return result
+}
+
+fn Dotenv_load(path: string) -> HashMap {
+    var content = File.read(path)
+    return Dotenv_parse(content)
+}
