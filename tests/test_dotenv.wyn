@@ -23,25 +23,53 @@ fn Dotenv_parse(content: string) -> HashMap {
     return result
 }
 
-fn main() -> int {
-    Test.init("dotenv")
-
+test "host" {
     // Parse .env content
     var env = Dotenv_parse("DB_HOST=localhost\nDB_PORT=5432\n# comment\nAPI_KEY=\"secret123\"\n\nDEBUG=true")
-    Test.assert_eq_str(env.get("DB_HOST"), "localhost", "host")
-    Test.assert_eq_str(env.get("DB_PORT"), "5432", "port")
-    Test.assert_eq_str(env.get("API_KEY"), "secret123", "quoted value")
-    Test.assert_eq_str(env.get("DEBUG"), "true", "bool")
+    assert_eq(env.get("DB_HOST"), "localhost")
+}
 
+test "port" {
+    // Parse .env content
+    var env = Dotenv_parse("DB_HOST=localhost\nDB_PORT=5432\n# comment\nAPI_KEY=\"secret123\"\n\nDEBUG=true")
+    assert_eq(env.get("DB_PORT"), "5432")
+}
+
+test "quoted value" {
+    // Parse .env content
+    var env = Dotenv_parse("DB_HOST=localhost\nDB_PORT=5432\n# comment\nAPI_KEY=\"secret123\"\n\nDEBUG=true")
+    assert_eq(env.get("API_KEY"), "secret123")
+}
+
+test "bool" {
+    // Parse .env content
+    var env = Dotenv_parse("DB_HOST=localhost\nDB_PORT=5432\n# comment\nAPI_KEY=\"secret123\"\n\nDEBUG=true")
+    assert_eq(env.get("DEBUG"), "true")
+}
+
+test "comment skipped" {
+    // Parse .env content
+    var env = Dotenv_parse("DB_HOST=localhost\nDB_PORT=5432\n# comment\nAPI_KEY=\"secret123\"\n\nDEBUG=true")
     // Comments and blank lines skipped
-    Test.assert_eq_str(env.get("# comment"), "", "comment skipped")
+    assert_eq(env.get("# comment"), "")
+}
 
+test "file load" {
+    // Parse .env content
+    var env = Dotenv_parse("DB_HOST=localhost\nDB_PORT=5432\n# comment\nAPI_KEY=\"secret123\"\n\nDEBUG=true")
+    // Comments and blank lines skipped
     // File-based load
     File.write("/tmp/wyn_test.env", "NAME=Wyn\nVER=1.7")
     var loaded = Dotenv_parse(File.read("/tmp/wyn_test.env"))
-    Test.assert_eq_str(loaded.get("NAME"), "Wyn", "file load")
-    Test.assert_eq_str(loaded.get("VER"), "1.7", "file ver")
+    assert_eq(loaded.get("NAME"), "Wyn")
+}
 
-    Test.summary()
-    return 0
+test "file ver" {
+    // Parse .env content
+    var env = Dotenv_parse("DB_HOST=localhost\nDB_PORT=5432\n# comment\nAPI_KEY=\"secret123\"\n\nDEBUG=true")
+    // Comments and blank lines skipped
+    // File-based load
+    File.write("/tmp/wyn_test.env", "NAME=Wyn\nVER=1.7")
+    var loaded = Dotenv_parse(File.read("/tmp/wyn_test.env"))
+    assert_eq(loaded.get("VER"), "1.7")
 }
